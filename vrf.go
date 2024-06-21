@@ -168,3 +168,30 @@ func (v *vrf) Verify(pk *ecdsa.PublicKey, alpha, pi []byte) (beta []byte, err er
 	beta = core.GammaToHash(gamma)
 	return
 }
+
+// ComputeFastVerifyParams parameters (EC points) required for the VRF fast verification.
+// Ref:
+// 1. [vrf-solidity](https://github.com/sparklex-io/vrf-solidity/blob/653dc85fd7e2b64b6026d4ca54b7cce3ec9dedf5/contracts/VRF.sol#L122-L130)
+// 2. [ECRECOVERY](https://ethresear.ch/t/you-can-kinda-abuse-ecrecover-to-do-ecmul-in-secp256k1-today/2384/9)
+func (v *vrf) ComputeFastVerifyParams(pk *ecdsa.PublicKey, alpha, pi []byte) (u, sH, cGamma *point, err error) {
+	core := core{Config: &v.cfg}
+
+	gamma, c, s, err := core.DecodeProof(pi)
+	if err != nil {
+		return
+	}
+
+	// Requirements for Step 3: U = s*B - c*Y (where B is the generator)
+	H, err := core.HashToCurveTryAndIncrement(&point{pk.X, pk.Y}, alpha)
+	if err != nil {
+		return
+	}
+	sB := core.ScalarBaseMult(s.Bytes())
+	cY := core.ScalarMult(&point{pk.X, pk.Y}, c.Bytes())
+	u = core.Sub(sB, cY)
+
+	// Requirements for Step 4: V = s*H - c*Gamma
+	sH = core.ScalarMult(H, s.Bytes())
+	cGamma = core.ScalarMult(gamma, c.Bytes())
+	return
+}
