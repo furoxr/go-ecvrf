@@ -1,4 +1,4 @@
-module github.com/vechain/go-ecvrf
+module github.com/furoxr/go-ecvrf
 
 go 1.16
 
