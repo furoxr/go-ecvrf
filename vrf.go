@@ -23,6 +23,9 @@ type VRF interface {
 	// Verify checks the proof `pi` of the message `alpha` against the given
 	// public key `pk`. The hash output is returned as `beta`.
 	Verify(pk *ecdsa.PublicKey, alpha, pi []byte) (beta []byte, err error)
+
+	// ComputeFastVerifyParams constructs the parameters required for the VRF fast verification on chain.
+	ComputeFastVerifyParams(pk *ecdsa.PublicKey, alpha, pi []byte) (u, sH, cGamma *point, err error)
 }
 
 var (
@@ -169,7 +172,7 @@ func (v *vrf) Verify(pk *ecdsa.PublicKey, alpha, pi []byte) (beta []byte, err er
 	return
 }
 
-// ComputeFastVerifyParams parameters (EC points) required for the VRF fast verification.
+// ComputeFastVerifyParams parameters (EC points) required for the VRF fast verification on chain.
 // Ref:
 // 1. [vrf-solidity](https://github.com/sparklex-io/vrf-solidity/blob/653dc85fd7e2b64b6026d4ca54b7cce3ec9dedf5/contracts/VRF.sol#L122-L130)
 // 2. [ECRECOVERY](https://ethresear.ch/t/you-can-kinda-abuse-ecrecover-to-do-ecmul-in-secp256k1-today/2384/9)
