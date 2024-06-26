@@ -26,6 +26,9 @@ type VRF interface {
 
 	// ComputeFastVerifyParams constructs the parameters required for the VRF fast verification on chain.
 	ComputeFastVerifyParams(pk *ecdsa.PublicKey, alpha, pi []byte) (u, sH, cGamma *point, err error)
+
+	// DecodeProof decodes the proof `pi` into gamma, c, s.
+	DecodeProof(pi []byte) (gamma *point, C, S *big.Int, err error)
 }
 
 var (
@@ -197,4 +200,10 @@ func (v *vrf) ComputeFastVerifyParams(pk *ecdsa.PublicKey, alpha, pi []byte) (u,
 	sH = core.ScalarMult(H, s.Bytes())
 	cGamma = core.ScalarMult(gamma, c.Bytes())
 	return
+}
+
+// DecodeProof decodes the proof `pi` into gamma, c, s.
+func (v *vrf) DecodeProof(pi []byte) (gamma *point, C, S *big.Int, err error) {
+	core := core{Config: &v.cfg}
+	return core.DecodeProof(pi)
 }
